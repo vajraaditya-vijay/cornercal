@@ -1,0 +1,282 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<style>
+:root{--bg:#ffffff;--fg:#1f1f1f;--mut:#5f6368;--grid:rgba(0,0,0,.08);--edge:rgba(0,0,0,.08);
+  --now:#ea4335;--accent:#0b57d0;--onaccent:#fff;--track:rgba(0,0,0,.08)}
+@media (prefers-color-scheme: dark){:root{--bg:#131314;--fg:#e3e3e3;--mut:#9aa0a6;--grid:rgba(255,255,255,.09);
+  --edge:rgba(255,255,255,.08);--now:#e8625b;--accent:#a8c7fa;--onaccent:#062e6f;--track:rgba(255,255,255,.1)}}
+:root{--liquid:linear(0.0, 0.0244, 0.088, 0.1782, 0.2841, 0.3968, 0.5094, 0.6167, 0.715, 0.802, 0.8764, 0.9381, 0.9872, 1.0246, 1.0515, 1.0693, 1.0795, 1.0834, 1.0824, 1.0779, 1.0708, 1.0623, 1.0529, 1.0435, 1.0344, 1.0259, 1.0184, 1.0119, 1.0065, 1.0021, 0.9987, 0.9962, 0.9945, 0.9935, 0.9931, 0.9931, 0.9934, 0.9939, 0.9946, 0.9954, 0.9962, 0.9969, 0.9977, 0.9983, 0.9989, 0.9993, 0.9997, 1.0, 1)}  /* damped spring, zeta 0.62, ~8% overshoot */
+html,body{margin:0;height:100%;background:transparent;overflow:hidden;color:var(--fg);
+  font:13px "Google Sans Text","Google Sans",-apple-system,system-ui,sans-serif;-webkit-user-select:none;cursor:default}
+
+.shell{position:absolute;inset:8px;filter:drop-shadow(0 16px 28px rgba(0,0,0,.32)) drop-shadow(0 2px 5px rgba(0,0,0,.18))}
+.card{position:absolute;inset:0;border-radius:18px;background:var(--bg);display:flex;flex-direction:column;overflow:hidden;
+  box-shadow:inset 0 0 0 1px var(--edge);
+  clip-path:circle(12px at calc(100% - 2px) calc(100% - 2px));
+  opacity:0;transform:translate(10px,14px) scale(.9);transform-origin:100% 100%;filter:blur(8px);
+  transition:clip-path .2s cubic-bezier(.3,0,.8,.15),opacity .18s cubic-bezier(.3,0,.8,.15) .02s,
+    transform .2s cubic-bezier(.3,0,.8,.15),filter .2s cubic-bezier(.3,0,.8,.15);
+  will-change:clip-path,transform,opacity,filter}
+/* Opens like a droplet spreading out of the corner: circular reveal + spring settle. */
+body.open .card{clip-path:circle(150% at calc(100% - 2px) calc(100% - 2px));opacity:1;transform:none;filter:blur(0);
+  transition:clip-path .75s cubic-bezier(.05,.7,.1,1),opacity .12s linear,transform .9s var(--liquid),filter .4s cubic-bezier(.05,.7,.1,1)}
+@media (prefers-reduced-motion: reduce){.card,body.open .card{clip-path:none;transform:none;filter:none;transition:opacity .15s linear}
+  body.play .ev,body.play .head{animation:none}}
+
+.head{display:flex;align-items:center;gap:14px;padding:14px 16px 12px;border-bottom:1px solid var(--grid)}
+.date{display:flex;flex-direction:column;align-items:center;gap:3px;flex:none}
+.dow{font-size:11px;font-weight:600;letter-spacing:.08em;color:var(--accent)}
+.dnum{width:42px;height:42px;border-radius:50%;background:var(--accent);color:var(--onaccent);display:grid;place-items:center;font-size:21px;font-weight:500}
+.status{flex:1;min-width:0}
+.st1{font-size:11.5px;color:var(--mut);display:flex;justify-content:space-between;gap:8px}
+.st1 .upd{all:unset;display:flex;align-items:center;gap:4px;font-size:10px;color:var(--mut);opacity:.8;cursor:pointer;
+  border-radius:6px;padding:1px 5px;margin:-1px -5px;transition:background .15s,opacity .15s}
+.st1 .upd:hover{opacity:1;background:var(--track)}
+.upd svg{width:11px;height:11px;flex:none}
+.upd.spin svg{animation:spin .7s linear infinite}
+.st1 .tools{display:flex;align-items:center;gap:8px}
+.gear{all:unset;display:grid;place-items:center;width:18px;height:18px;margin:-2px -4px -2px 0;border-radius:6px;color:var(--mut);
+  opacity:.8;cursor:pointer;transition:background .15s,opacity .15s}
+.gear:hover{opacity:1;background:var(--track)}
+.gear svg{width:13px;height:13px;transition:transform .5s var(--liquid)}
+.gear:active svg{transform:rotate(60deg)}
+@keyframes spin{to{transform:rotate(360deg)}}
+.st2{font-size:14.5px;font-weight:500;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bar{height:4px;border-radius:2px;background:var(--track);margin-top:8px;overflow:hidden}
+.bar i{display:block;height:100%;width:0;border-radius:2px;background:var(--c,var(--accent));transition:width .8s cubic-bezier(.16,1,.3,1)}
+
+.scroll{flex:1;overflow-y:auto;position:relative;scroll-behavior:auto;
+  -webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 10px,#000 calc(100% - 18px),transparent 100%)}
+.scroll::-webkit-scrollbar{width:0}
+
+.dayrow{height:46px;display:flex;align-items:flex-end;gap:8px;padding:0 16px 8px 14px;font-size:11px;font-weight:600;letter-spacing:.08em;color:var(--mut)}
+.dayrow b{font-size:18px;font-weight:500;letter-spacing:0;color:var(--fg)}
+.allday{display:flex;flex-wrap:wrap;gap:4px;padding:6px 12px 2px 62px}
+.allday span{background:var(--c);color:var(--tc);border-radius:6px;padding:3px 8px;font-size:12px;font-weight:500}
+
+.seg{position:relative}
+.hr{position:absolute;left:56px;right:0;border-top:1px solid var(--grid)}
+.hl{position:absolute;left:0;width:48px;text-align:right;font-size:10.5px;color:var(--mut);transform:translateY(-50%)}
+.evs{position:absolute;left:60px;right:10px;top:0;bottom:0}
+.ev{position:absolute;box-sizing:border-box;border-radius:7px;padding:4px 9px;overflow:hidden;
+  background:var(--c);color:var(--tc);box-shadow:0 0 0 1px var(--bg);line-height:1.28;
+  transition:opacity .8s ease,filter .8s ease}
+.ev .t{font-size:12.5px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ev.tall .t{white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.ev .w{font-size:11.5px;opacity:.85;white-space:nowrap}
+.ev.one{display:flex;align-items:center;padding-top:0;padding-bottom:0}
+.ev.one .t{flex:0 1 auto}.ev.one .w{flex:none}
+.ev.past{opacity:.45;filter:saturate(.6)}
+/* Hover (.hov, set by hoverAt() from the native tick: WebKit gets no mouse-moved events in this non-key window,
+   so CSS :hover never fires): the left edge slides out over the hour labels (right edge stays put) and the block shows more.
+   One-line blocks swap ", start" for the full range + duration; taller ones add duration and calendar. */
+.ev{transition:opacity .8s ease,filter .8s ease,left .45s var(--liquid),width .45s var(--liquid),height .45s var(--liquid),box-shadow .2s}
+.ev.hov{left:-52px!important;width:calc((var(--col) + 1) * 100% / var(--ncol) - 3px + 52px)!important;
+  z-index:6;opacity:1;filter:none;box-shadow:0 0 0 1px var(--bg),0 6px 18px rgba(0,0,0,.28)}
+.ev .more,.ev .long{display:none}
+.ev.hov .more{display:block}
+.ev.one.hov .short{display:none}
+.ev.one.hov .long{display:inline}
+.ev.hov .t{white-space:normal;-webkit-line-clamp:unset}
+.ev.one.hov .t{white-space:nowrap}
+.ev .more{font-size:11px;opacity:.75;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+body.play .ev{animation:rise .9s var(--liquid) both;animation-delay:calc(var(--d) + 90ms)}
+body.play .head{animation:rise .8s var(--liquid) both;animation-delay:60ms}
+@keyframes rise{from{opacity:0;transform:translateY(14px) scale(.94)}}
+
+.nowl{position:absolute;left:56px;right:4px;height:2px;margin-top:-1px;background:var(--now);z-index:5;pointer-events:none;
+  transition:top 1.2s linear}
+.nowl:before,.nowl:after{content:"";position:absolute;left:-6px;top:-5px;width:12px;height:12px;border-radius:50%;background:var(--now)}
+.nowl:after{animation:pulse 2.4s ease-out infinite}
+@keyframes pulse{0%{transform:scale(1);opacity:.55}100%{transform:scale(2.8);opacity:0}}
+.empty{padding:6px 16px 0 62px;color:var(--mut);font-size:12px;line-height:1.4}
+.empty a{color:var(--accent);text-decoration:none;font-weight:500}
+</style></head>
+<body>
+<div class="shell"><div class="card">
+  <div class="head">
+    <div class="date"><div class="dow" id="dow"></div><div class="dnum" id="dnum"></div></div>
+    <div class="status">
+      <div class="st1"><span id="st1"></span><span class="tools"><button class="upd" id="upd" title="Refresh"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M13.5 8a5.5 5.5 0 1 1-1.6-3.9"/><path d="M12.5 1.8v2.8H9.7"/></svg><span id="updt"></span></button><button class="gear" id="gear" title="Settings"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="2.2"/><path d="M8 1.5v1.8M8 12.7v1.8M1.5 8h1.8M12.7 8h1.8M3.4 3.4l1.3 1.3M11.3 11.3l1.3 1.3M3.4 12.6l1.3-1.3M11.3 4.7l1.3-1.3" stroke-linecap="round"/><circle cx="8" cy="8" r="4.6"/></svg></button></span></div>
+      <div class="st2" id="st2"></div>
+      <div class="bar"><i id="bar"></i></div>
+    </div>
+  </div>
+  <div class="scroll" id="scroll"><div id="tl"></div></div>
+</div></div>
+<script>
+/*COMMON*/
+const HOUR = 54, PAD = 12, H = 3600000;
+let D = { events: [] }, renderedDay = null, hovEl = null;
+
+const dayStart = (off) => { const n = new Date(); return new Date(n.getFullYear(), n.getMonth(), n.getDate() + off).getTime(); };
+const hourLabel = (h) => `${h % 12 || 12} ${h < 12 || h === 24 ? 'AM' : 'PM'}`;
+const events = () => (Array.isArray(D.events) ? D.events : []);
+
+function layoutColumns(list) {
+  let cluster = [], end = -1;
+  const flush = () => {
+    const cols = [];
+    for (const e of cluster) {
+      let c = cols.findIndex((t) => t <= e.s);
+      if (c < 0) { c = cols.length; cols.push(0); }
+      cols[c] = e.e; e.col = c;
+    }
+    cluster.forEach((e) => (e.ncol = cols.length));
+    cluster = [];
+  };
+  for (const e of list) {
+    if (cluster.length && e.s >= end) { flush(); end = -1; }
+    cluster.push(e); end = Math.max(end, e.e);
+  }
+  if (cluster.length) flush();
+}
+
+function render() {
+  const now = Date.now(), tl = document.getElementById('tl');
+  renderedDay = dayStart(0);
+  let out = '', idx = 0;
+  // Yesterday is drawn above today; openPanel scrolls to now, so it shows only when scrolled up.
+  for (let off = -1; off < 2; off++) {
+    const s0 = dayStart(off), s1 = dayStart(off + 1);
+    const day = events().filter((e) => e.start < s1 && e.end > s0);
+    const allDay = day.filter((e) => e.allDay);
+    const timed = day.filter((e) => !e.allDay)
+      .map((e) => ({ ...e, s: Math.max(e.start, s0), e: Math.min(e.end, s1) }))
+      .sort((a, b) => a.s - b.s || b.e - a.e);
+
+    {
+      const d = new Date(s0);
+      out += `<div class="dayrow">${d.toLocaleDateString('en-GB', { weekday: 'short' }).toUpperCase()} <b>${d.getDate()}</b> ${d.toLocaleDateString('en-GB', { month: 'short' })}</div>`;
+    }
+    if (allDay.length) {
+      out += '<div class="allday">' + allDay.map((e) => { const c = modern(e.color); return `<span style="--c:${c};--tc:${textOn(c)}">${esc(e.title)}</span>`; }).join('') + '</div>';
+    }
+
+    let h0 = 7, h1 = 22;
+    if (timed.length) {
+      h0 = Math.min(h0, Math.floor((timed[0].s - s0) / H));
+      h1 = Math.max(h1, Math.ceil((Math.max(...timed.map((e) => e.e)) - s0) / H));
+    }
+    if (off === 0) { h0 = Math.min(h0, Math.floor((now - s0) / H)); h1 = Math.max(h1, Math.ceil((now - s0) / H)); }
+    h0 = Math.max(0, h0); h1 = Math.min(24, h1);
+    const segStart = s0 + h0 * H;
+    const y = (t) => PAD + ((t - segStart) / H) * HOUR;
+
+    let seg = '';
+    for (let h = h0; h <= h1; h++) {
+      const top = PAD + (h - h0) * HOUR;
+      seg += `<div class="hr" style="top:${top}px"></div>`;
+      if (h > h0 || h0 > 0) seg += `<div class="hl" style="top:${top}px">${hourLabel(h)}</div>`;
+    }
+    layoutColumns(timed);
+    seg += '<div class="evs">';
+    for (const e of timed) {
+      const top = y(e.s) + 1, hgt = Math.max(17, y(e.e) - y(e.s) - 2);
+      const c = modern(e.color), cls = ['ev'];
+      if (hgt < 36) cls.push('one'); else if (hgt >= 62) cls.push('tall');
+      if (e.end <= now) cls.push('past');
+      const body = hgt < 36
+        ? `<span class="t">${esc(e.title)}</span><span class="w short">, ${hm(e.start)}</span>` +
+          `<span class="w long">&nbsp;· ${range(e.start, e.end)} · ${dur(e.end - e.start)}</span>`
+        : `<div class="t">${esc(e.title)}</div><div class="w">${range(e.start, e.end)}</div>` +
+          `<div class="more">${dur(e.end - e.start)}${e.calendar ? ' · ' + esc(e.calendar) : ''}</div>`;
+      seg += `<div class="${cls.join(' ')}" data-end="${e.end}" style="top:${top}px;height:${hgt}px;` +
+        `--col:${e.col};--ncol:${e.ncol};left:calc(${e.col} * 100% / ${e.ncol});width:calc(100% / ${e.ncol} - 3px);--c:${c};--tc:${textOn(c)};--d:${off < 0 ? 0 : Math.min(idx++ * 16, 320)}ms">${body}</div>`;
+    }
+    seg += '</div>';
+    if (!timed.length && !allDay.length) seg += D.error === 'noaccess'
+      ? (off === 0 ? '<div class="empty">CornerCal can\'t see your calendars yet. <a href="#" class="grant">Allow access in Settings</a></div>' : '')
+      : '<div class="empty">Nothing scheduled</div>';
+    if (now >= s0 && now < s1) seg += `<div class="nowl" id="nowl" data-seg="${segStart}" style="top:${y(now)}px"></div>`;
+    out += `<div class="seg" style="height:${(h1 - h0) * HOUR + PAD * 2}px">${seg}</div>`;
+  }
+  tl.innerHTML = out;
+  hovEl = null;
+  tick();
+}
+
+function tick() {
+  const now = Date.now();
+  if (renderedDay !== dayStart(0)) return render();
+  const nl = document.getElementById('nowl');
+  if (nl) nl.style.top = PAD + ((now - Number(nl.dataset.seg)) / H) * HOUR + 'px';
+  document.querySelectorAll('.ev:not(.past)').forEach((el) => { if (Number(el.dataset.end) <= now) el.classList.add('past'); });
+
+  const d = new Date();
+  document.getElementById('dow').textContent = d.toLocaleDateString('en-GB', { weekday: 'short' }).toUpperCase();
+  document.getElementById('dnum').textContent = d.getDate();
+
+  const timed = events().filter((e) => !e.allDay);
+  const cur = timed.filter((e) => e.start <= now && now < e.end).sort((a, b) => b.start - a.start)[0];
+  const next = timed.filter((e) => e.start > now).sort((a, b) => a.start - b.start)[0];
+  const st1 = document.getElementById('st1'), st2 = document.getElementById('st2'), bar = document.getElementById('bar');
+  if (cur) {
+    st1.textContent = `Now · ${dur(cur.end - now)} left`;
+    st2.textContent = cur.title;
+    bar.style.setProperty('--c', modern(cur.color));
+    bar.style.width = ((now - cur.start) / (cur.end - cur.start)) * 100 + '%';
+  } else {
+    st1.textContent = next ? `Free · next in ${dur(next.start - now)}` : 'Free';
+    st2.textContent = next ? next.title : 'Nothing else scheduled';
+    bar.style.width = '0%';
+  }
+  document.getElementById('updt').textContent = D.error === 'noaccess' ? 'no access' : D.error ? 'offline' : (D.updated ? 'updated ' + hm(D.updated) : '');
+}
+
+// Cursor position in page px from cornercal.lua's tick; (-1, -1) clears.
+function hoverAt(x, y) {
+  const hit = x < 0 ? null : document.elementFromPoint(x, y);
+  const el = hit ? hit.closest('.ev') : null;
+  if (el === hovEl) return;
+  if (hovEl) { hovEl.classList.remove('hov'); hovEl.style.height = hovEl.dataset.h + 'px'; }
+  hovEl = el;
+  if (!el) return;
+  if (!el.dataset.h) el.dataset.h = parseFloat(el.style.height);
+  el.classList.add('hov');
+  // Grow down to fit the extra detail line: measure a hidden copy at its final (hovered) width,
+  // since the real one is still mid-transition and would wrap more.
+  const c = el.cloneNode(true);
+  c.removeAttribute('id');
+  c.style.transition = 'none'; c.style.height = 'auto'; c.style.visibility = 'hidden'; c.style.animation = 'none';
+  el.parentNode.appendChild(c);
+  const need = Math.ceil(c.offsetHeight);
+  c.remove();
+  if (need > Number(el.dataset.h)) el.style.height = need + 'px';
+}
+
+function setData(d) {
+  D = d || { events: [] }; render();
+  const u = document.getElementById('upd');
+  setTimeout(() => u.classList.remove('spin'), Math.max(0, 500 - (Date.now() - (u.t0 || 0))));
+}
+document.addEventListener('click', (e) => {
+  if (e.target.closest('.grant')) { e.preventDefault(); try { webkit.messageHandlers.cornercalPanel.postMessage({ type: 'settings' }); } catch (x) {} }
+});
+document.getElementById('gear').addEventListener('click', () => {
+  try { webkit.messageHandlers.cornercalPanel.postMessage({ type: 'settings' }); } catch (e) {}
+});
+document.getElementById('upd').addEventListener('click', () => {
+  const u = document.getElementById('upd');
+  if (u.classList.contains('spin')) return;
+  u.t0 = Date.now(); u.classList.add('spin');
+  try { webkit.messageHandlers.cornercalPanel.postMessage({ type: 'refresh' }); } catch (e) { u.classList.remove('spin'); }
+});
+
+function openPanel() {
+  tick();
+  const sc = document.getElementById('scroll'), nl = document.getElementById('nowl');
+  if (nl) sc.scrollTop = nl.parentElement.offsetTop + nl.offsetTop - sc.clientHeight * 0.3;
+  document.body.classList.remove('play');
+  void document.body.offsetWidth;
+  document.body.classList.add('play', 'open');
+  clearTimeout(openPanel.t);
+  openPanel.t = setTimeout(() => document.body.classList.remove('play'), 1000);
+}
+function closePanel() { document.body.classList.remove('open'); }
+
+setInterval(tick, 15000);
+render();
+try { webkit.messageHandlers.cornercalPanel.postMessage({ type: 'loaded' }); } catch (e) {}
+</script>
+</body></html>

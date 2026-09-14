@@ -1,0 +1,137 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<style>
+:root{--bg:#f6f7f9;--card:#ffffff;--fg:#1f1f1f;--mut:#5f6368;--line:rgba(0,0,0,.08);--accent:#0b57d0;--onaccent:#fff;--track:rgba(0,0,0,.1);
+  --warn:#b3261e;--warnbg:#fce8e6;--ok:#1e8e3e;--screen:#e9edf3;--pill:#ffffff;--fill:#8fc9a8}
+@media (prefers-color-scheme: dark){:root{--bg:#1b1c1e;--card:#26272b;--fg:#e3e3e3;--mut:#9aa0a6;--line:rgba(255,255,255,.08);--accent:#a8c7fa;
+  --onaccent:#062e6f;--track:rgba(255,255,255,.14);--warn:#f2b8b5;--warnbg:rgba(242,184,181,.12);--ok:#81c995;--screen:#2c2f35;--pill:#26272b;--fill:#4f8a67}}
+:root{--liquid:linear(0,.0244,.088,.1782,.2841,.3968,.5094,.6167,.715,.802,.8764,.9381,.9872,1.0246,1.0515,1.0693,1.0795,1.0834,1.0824,1.0779,1.0708,1.0623,1.0529,1.0435,1.0344,1.0259,1.0184,1.0119,1.0065,1.0021,.9987,.9962,.9945,.9935,.9931,.9931,.9934,.9939,.9946,.9954,.9962,.9969,.9977,.9983,.9989,.9993,.9997,1,1)}
+[hidden]{display:none!important}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--fg);font:13px -apple-system,system-ui,sans-serif;-webkit-user-select:none;cursor:default}
+main{padding:40px 30px 24px;display:flex;flex-direction:column;height:100%;box-sizing:border-box}
+.hero{display:flex;gap:16px;align-items:center;margin-bottom:18px}
+.hero img{width:64px;height:64px;flex:none}
+h1{font-size:22px;font-weight:650;margin:0;letter-spacing:-.015em}
+.hero p{margin:3px 0 0;color:var(--mut);font-size:13px;line-height:1.4}
+
+/* A tiny screen with the pill in its corner and the panel springing out of it */
+.demo{position:relative;height:150px;border-radius:14px;background:var(--screen);box-shadow:inset 0 0 0 1px var(--line);overflow:hidden;margin-bottom:18px}
+.demo .pill{position:absolute;right:8px;bottom:8px;width:168px;height:26px;border-radius:13px;background:var(--pill);overflow:hidden;
+  box-shadow:0 4px 12px rgba(0,0,0,.18),0 0 0 1px var(--line);display:flex;align-items:center;font-size:10.5px;font-weight:500}
+.demo .pill i{position:absolute;inset:0 auto 0 0;width:38%;background:var(--fill);animation:fill 6s linear infinite}
+.demo .pill span{position:relative;padding-left:24px;flex:1}
+.demo .pill em{position:relative;font-style:normal;padding-right:10px;color:var(--mut)}
+.demo .pill:before{content:"";position:absolute;left:10px;top:9px;width:8px;height:8px;border-radius:50%;background:#33b679;z-index:1}
+.demo .panel{position:absolute;right:8px;bottom:8px;width:150px;height:120px;border-radius:10px;background:var(--pill);
+  box-shadow:0 8px 20px rgba(0,0,0,.25),0 0 0 1px var(--line);transform-origin:100% 100%;animation:panel 6s var(--liquid) infinite;padding:10px;box-sizing:border-box}
+.demo .panel b{display:block;height:14px;border-radius:4px;margin-bottom:6px}
+.demo .cursor{position:absolute;width:14px;height:20px;animation:cursor 6s ease-in-out infinite}
+@keyframes fill{from{width:30%}to{width:62%}}
+@keyframes panel{0%,45%{transform:scale(0);opacity:0}55%,85%{transform:scale(1);opacity:1}95%,100%{transform:scale(0);opacity:0}}
+@keyframes cursor{0%,15%{right:150px;bottom:90px}45%,85%{right:2px;bottom:-6px}100%{right:150px;bottom:90px}}
+@media (prefers-reduced-motion: reduce){.demo .panel,.demo .cursor,.demo .pill i{animation:none}.demo .panel{display:none}}
+
+.steps{display:flex;flex-direction:column;gap:10px;flex:1}
+.step{display:flex;gap:12px;align-items:center;background:var(--card);border-radius:12px;padding:12px 14px;box-shadow:0 0 0 1px var(--line)}
+.num{width:24px;height:24px;border-radius:50%;background:var(--track);display:grid;place-items:center;font-size:12px;font-weight:600;flex:none;
+  transition:background .3s,color .3s}
+.step.done .num{background:var(--ok);color:#fff}
+.step .txt{flex:1;min-width:0}
+.step b{display:block;font-weight:550;font-size:13.5px}
+.step small{display:block;color:var(--mut);font-size:11.5px;margin-top:2px;line-height:1.35}
+.warn{background:var(--warnbg);box-shadow:none}
+.warn b,.warn small{color:var(--warn)}
+button{all:unset;cursor:pointer;font-weight:550;font-size:12.5px;border-radius:8px;padding:7px 13px;background:var(--track);color:var(--fg);
+  transition:transform .3s var(--liquid),filter .15s;white-space:nowrap}
+button:hover{filter:brightness(1.08)}
+button:active{transform:scale(.95)}
+button.primary{background:var(--accent);color:var(--onaccent)}
+.ok{color:var(--ok);font-weight:600;font-size:12.5px}
+.sw{position:relative;width:38px;height:22px;flex:none}
+.sw input{appearance:none;margin:0;position:absolute;inset:0;border-radius:11px;background:var(--track);transition:background .2s;cursor:pointer}
+.sw input:checked{background:var(--accent)}
+.sw i{position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.3);transition:transform .45s var(--liquid);pointer-events:none}
+.sw input:checked+i{transform:translateX(16px)}
+.foot{display:flex;justify-content:space-between;align-items:center;margin-top:16px}
+.foot small{color:var(--mut);font-size:11.5px;max-width:280px;line-height:1.35}
+.big{font-size:14px;padding:10px 22px;border-radius:10px}
+</style></head>
+<body><main>
+  <div class="hero">
+    <img src="AppIcon.png" alt="">
+    <div><h1>Welcome to CornerCal</h1>
+      <p>Your calendar, parked in the bottom-right corner. Rest the pointer there and your whole day shows up. No more "wait, that was today?"</p></div>
+  </div>
+
+  <div class="demo" aria-hidden="true">
+    <div class="pill"><i></i><span>Physics — lenses</span><em>42m left</em></div>
+    <div class="panel"><b style="background:#8fc9a8;width:80%"></b><b style="background:#f3d98b;width:60%"></b><b style="background:#a9b8e8;width:70%"></b><b style="background:#e9a9a3;width:50%"></b></div>
+    <svg class="cursor" viewBox="0 0 14 20"><path d="M1 1v15l4-4 3 7 2.5-1-3-7h5.5z" fill="#fff" stroke="#000" stroke-width="1.2" stroke-linejoin="round"/></svg>
+  </div>
+
+  <div class="steps">
+    <div class="step warn" id="moveStep" hidden>
+      <div class="num">!</div>
+      <div class="txt"><b>Move CornerCal to Applications</b><small>You're running it straight off the disk image, like a raccoon eating out of the bin. Quit, drag CornerCal into Applications, open it from there.</small></div>
+    </div>
+    <div class="step" id="accessStep">
+      <div class="num">1</div>
+      <div class="txt"><b>Let it see your calendar</b><small id="accessText">It reads the Calendar app, so Google, iCloud and school accounts on this Mac all work. It can't tell your schedule if it can't see it.</small></div>
+      <div id="accessBtn"></div>
+    </div>
+    <div class="step" id="hcStep" hidden>
+      <div class="num">!</div>
+      <div class="txt"><b>Your corner is double-booked</b><small id="hcText"></small></div>
+      <button data-msg="hotcorners">Hot Corners…</button>
+    </div>
+    <div class="step" id="loginStep">
+      <div class="num">2</div>
+      <div class="txt"><b>Open at login</b><small>So you can't pretend you forgot.</small></div>
+      <label class="sw"><input type="checkbox" id="login" checked><i></i></label>
+    </div>
+    <div class="step">
+      <div class="num">3</div>
+      <div class="txt"><b>Settings live behind the gear</b><small>Open the panel and click ⚙︎, or open CornerCal again from Applications. No menu-bar icon — your menu bar has suffered enough.</small></div>
+    </div>
+  </div>
+
+  <div class="foot">
+    <small id="footNote">Hit Start and a sample reminder will pop out of the pill. Brace yourself.</small>
+    <button class="primary big" id="go">Start</button>
+  </div>
+</main>
+<script>
+document.addEventListener('contextmenu', (e) => e.preventDefault());
+const $ = (id) => document.getElementById(id);
+const post = (m) => { try { webkit.messageHandlers.cornercal.postMessage(m); } catch (e) {} };
+let S = /*STATE*/;
+let loginTouched = false;
+
+function setState(s) {
+  S = s;
+  $('moveStep').hidden = !s.outside;
+  const a = s.access;
+  $('accessStep').classList.toggle('done', a === 'granted');
+  if (a === 'granted') {
+    $('accessBtn').innerHTML = '<span class="ok">Allowed ✓</span>';
+    $('accessText').textContent = 'Access granted. Your schedule has nowhere left to hide.';
+  } else if (a === 'undetermined') {
+    $('accessBtn').innerHTML = '<button class="primary" data-msg="grant">Allow…</button>';
+  } else {
+    $('accessBtn').innerHTML = '<button class="primary" data-msg="privacy">Open Settings</button>';
+    $('accessText').textContent = a === 'writeOnly'
+      ? 'CornerCal only has "add events" access. In Privacy & Security → Calendars, set CornerCal to Full Access.'
+      : 'You said no. Bold. In Privacy & Security → Calendars, switch CornerCal on, then come back.';
+  }
+  $('hcStep').hidden = !s.hotCorner;
+  if (s.hotCorner) $('hcText').textContent = `The bottom-right Hot Corner opens ${s.hotCorner}. It will fire whenever you open CornerCal — set that corner to "-" in Desktop & Dock.`;
+  if (!loginTouched && s.outside) $('login').checked = false;
+  $('go').textContent = a === 'granted' ? 'Start' : 'Start without calendar';
+  $('footNote').textContent = a === 'granted' ? "Hit Start and a sample reminder will pop out of the pill. Brace yourself." : 'Sure, go calendar-less. You can allow access later in Settings.';
+}
+$('login').addEventListener('change', () => { loginTouched = true; });
+document.addEventListener('click', (e) => { const b = e.target.closest('[data-msg]'); if (b) post({ type: b.dataset.msg }); });
+$('go').addEventListener('click', () => post({ type: 'finish', login: $('login').checked }));
+setState(S);
+</script>
+</body></html>

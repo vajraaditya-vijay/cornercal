@@ -1,0 +1,7 @@
+build/
+dist/
+.DS_Store
+.netlify/
+Icon/AppIcon.iconset/
+site/CornerCal.dmg
+Icon/icon-*.png

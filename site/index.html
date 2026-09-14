@@ -1,0 +1,466 @@
+<meta charset="utf-8">
+<title>CornerCal</title>
+<meta name="description" content="A tiny pill in your screen corner that knows your schedule better than you do. Free, private, unnotarized.">
+<link rel="icon" href="icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f6f7f9;
+    --bg-alt: #ffffff;
+    --text: #1b1e24;
+    --text-dim: #5b6270;
+    --text-faint: #8a90a0;
+    --border: rgba(20, 24, 34, 0.10);
+    --card: #ffffff;
+    --shadow: 0 1px 2px rgba(20,24,34,0.04), 0 8px 24px rgba(20,24,34,0.06);
+    --accent: #1e60c8;
+    --accent-light: #78a8ed;
+    --accent-dark: #154ead;
+    --red: #d93025;
+    --pill-track: #eef1f6;
+    --code-bg: #eef0f4;
+    --focus: #1e60c8;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #101216;
+      --bg-alt: #16181d;
+      --text: #f2f3f5;
+      --text-dim: #a6acb9;
+      --text-faint: #6f7684;
+      --border: rgba(255,255,255,0.10);
+      --card: #191c22;
+      --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 28px rgba(0,0,0,0.4);
+      --accent: #6ea3f2;
+      --accent-light: #3a6fc4;
+      --accent-dark: #8fb9f6;
+      --red: #ff6b60;
+      --pill-track: #23262e;
+      --code-bg: #21242b;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #101216;
+    --bg-alt: #16181d;
+    --text: #f2f3f5;
+    --text-dim: #a6acb9;
+    --text-faint: #6f7684;
+    --border: rgba(255,255,255,0.10);
+    --card: #191c22;
+    --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 28px rgba(0,0,0,0.4);
+    --accent: #6ea3f2;
+    --accent-light: #3a6fc4;
+    --accent-dark: #8fb9f6;
+    --red: #ff6b60;
+    --pill-track: #23262e;
+    --code-bg: #21242b;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    padding: 0 20px;
+    line-height: 1.5;
+  }
+  .wrap { max-width: 880px; margin: 0 auto; }
+
+  /* ---------- Hero ---------- */
+  .hero {
+    padding: 72px 0 40px;
+    text-align: center;
+  }
+  .hero img.icon {
+    width: 128px;
+    height: 128px;
+    margin-bottom: 18px;
+  }
+  .hero h1 {
+    font-size: 2.4rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    margin: 0 0 10px;
+  }
+  .hero p.pitch {
+    font-size: 1.15rem;
+    color: var(--text-dim);
+    max-width: 520px;
+    margin: 0 auto 28px;
+  }
+  .cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--accent);
+    color: #fff;
+    font-weight: 700;
+    font-size: 1.05rem;
+    padding: 15px 30px;
+    border-radius: 14px;
+    text-decoration: none;
+    box-shadow: 0 6px 20px rgba(30,96,200,0.35);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .cta:hover { transform: translateY(-1px); box-shadow: 0 10px 26px rgba(30,96,200,0.4); }
+  .cta:active { transform: translateY(0); }
+  .cta svg { width: 20px; height: 20px; flex: none; }
+  .subnote {
+    display: block;
+    margin-top: 14px;
+    font-size: 0.9rem;
+    color: var(--text-faint);
+  }
+
+  /* ---------- Mock demo ---------- */
+  .demo {
+    position: relative;
+    margin: 44px auto 0;
+    max-width: 620px;
+    aspect-ratio: 16 / 10;
+    background:
+      linear-gradient(180deg, var(--card), var(--bg-alt));
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+  .demo .desktop-hint {
+    position: absolute;
+    top: 14px;
+    left: 18px;
+    font-size: 0.75rem;
+    color: var(--text-faint);
+    letter-spacing: 0.02em;
+  }
+  .demo .menubar {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 26px;
+    background: rgba(120,128,145,0.08);
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* the pill mock */
+  .pill-mock {
+    position: absolute;
+    right: 22px;
+    bottom: 22px;
+    width: 168px;
+    height: 40px;
+    border-radius: 20px;
+    background: var(--pill-track);
+    border: 1px solid var(--border);
+    overflow: hidden;
+    box-shadow: 0 4px 14px rgba(20,24,34,0.12);
+  }
+  .pill-mock .fill {
+    position: absolute;
+    inset: 0;
+    width: 38%;
+    background: linear-gradient(180deg, var(--accent-light), var(--accent));
+    border-radius: 20px;
+    animation: fillgrow 6s ease-in-out infinite;
+  }
+  .pill-mock .label {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    padding: 0 14px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--text);
+    white-space: nowrap;
+  }
+
+  @keyframes fillgrow {
+    0%   { width: 12%; }
+    45%  { width: 78%; }
+    55%  { width: 78%; }
+    100% { width: 12%; }
+  }
+
+  /* the timeline panel mock, springs open on hover of the demo */
+  .panel-mock {
+    position: absolute;
+    right: 22px;
+    bottom: 70px;
+    width: 240px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    box-shadow: 0 14px 30px rgba(20,24,34,0.18);
+    padding: 12px;
+    opacity: 0;
+    transform: translateY(10px) scale(0.97);
+    transform-origin: bottom right;
+    transition: opacity 0.35s cubic-bezier(.2,1.4,.4,1), transform 0.45s cubic-bezier(.2,1.4,.4,1);
+    pointer-events: none;
+  }
+  .demo:hover .panel-mock,
+  .demo:focus-within .panel-mock {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  .panel-mock .day-label {
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: var(--text-faint);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin: 6px 0 4px;
+  }
+  .panel-mock .row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 0;
+  }
+  .panel-mock .dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--accent);
+    flex: none;
+  }
+  .panel-mock .dot.now { background: var(--red); }
+  .panel-mock .bar {
+    height: 8px;
+    border-radius: 4px;
+    background: var(--pill-track);
+    flex: 1;
+  }
+  .panel-mock .row.now .bar { background: linear-gradient(90deg, var(--accent-light), var(--accent)); }
+  .panel-mock .now-line {
+    height: 2px;
+    background: var(--red);
+    border-radius: 2px;
+    margin: 2px 0;
+    position: relative;
+  }
+  .panel-mock .now-line::before {
+    content: "";
+    position: absolute;
+    left: -3px; top: -3px;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--red);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .pill-mock .fill { animation: none; width: 55%; }
+    .panel-mock { transition: none; }
+  }
+
+  /* ---------- Features ---------- */
+  .features {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 18px;
+    margin: 64px 0 8px;
+  }
+  .feature {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: var(--shadow);
+  }
+  .feature .emoji { font-size: 1.6rem; display: block; margin-bottom: 10px; }
+  .feature h3 { margin: 0 0 6px; font-size: 1.02rem; }
+  .feature p { margin: 0; color: var(--text-dim); font-size: 0.92rem; }
+
+  /* ---------- Sections ---------- */
+  section.block {
+    margin: 64px 0;
+  }
+  section.block h2 {
+    font-size: 1.5rem;
+    letter-spacing: -0.01em;
+    margin: 0 0 18px;
+  }
+
+  .steps {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    box-shadow: var(--shadow);
+    padding: 8px 24px;
+  }
+  .steps ol { margin: 0; padding-left: 20px; }
+  .steps li { padding: 14px 0; border-bottom: 1px solid var(--border); color: var(--text); }
+  .steps li:last-child { border-bottom: none; }
+  .steps li .sub { display: block; color: var(--text-dim); font-size: 0.9rem; margin-top: 4px; }
+  code {
+    background: var(--code-bg);
+    padding: 2px 7px;
+    border-radius: 6px;
+    font-size: 0.88em;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  .honesty {
+    margin-top: 18px;
+    padding: 14px 18px;
+    border-radius: 12px;
+    background: var(--code-bg);
+    color: var(--text-dim);
+    font-size: 0.92rem;
+  }
+
+  .privacy {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    box-shadow: var(--shadow);
+    padding: 22px 24px;
+    color: var(--text-dim);
+    font-size: 0.95rem;
+  }
+  .privacy strong { color: var(--text); }
+
+  footer {
+    text-align: center;
+    padding: 40px 0 60px;
+    color: var(--text-faint);
+    font-size: 0.85rem;
+  }
+  footer a { color: var(--text-faint); }
+
+  @media (max-width: 420px) {
+    .hero { padding-top: 48px; }
+    .hero h1 { font-size: 1.9rem; }
+    .demo { aspect-ratio: 4 / 5; }
+    .panel-mock { width: 78%; right: 12px; }
+    .pill-mock { right: 12px; width: 60%; min-width: 130px; }
+  }
+</style>
+
+<div class="wrap">
+
+  <div class="hero">
+    <img class="icon" src="icon.png" alt="CornerCal icon">
+    <h1>CornerCal</h1>
+    <p class="pitch">A tiny pill that sits in your screen's corner and remembers your schedule so you don't have to. No menu bar clutter, no account, no excuses.</p>
+    <a class="cta" href="CornerCal.dmg" download>
+      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 3v12m0 0l-4.5-4.5M12 15l4.5-4.5M4 19h16" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Download for Mac
+    </a>
+    <span class="subnote">macOS 14+ &middot; free &middot; no account &middot; takes less effort than the meeting you're about to miss</span>
+  </div>
+
+  <div class="demo" tabindex="0" aria-label="Preview of the CornerCal pill and timeline panel">
+    <div class="menubar"></div>
+    <span class="desktop-hint">your desktop (clicks pass right through, obviously)</span>
+
+    <div class="panel-mock" aria-hidden="true">
+      <div class="day-label">Today</div>
+      <div class="row"><span class="dot"></span><div class="bar" style="width:70%"></div></div>
+      <div class="now-line"></div>
+      <div class="row now"><span class="dot now"></span><div class="bar" style="width:85%"></div></div>
+      <div class="row"><span class="dot"></span><div class="bar" style="width:45%"></div></div>
+      <div class="day-label">Tomorrow</div>
+      <div class="row"><span class="dot"></span><div class="bar" style="width:55%"></div></div>
+    </div>
+
+    <div class="pill-mock" aria-hidden="true">
+      <div class="fill"></div>
+      <div class="label">Free for 42 min. Enjoy it.</div>
+    </div>
+  </div>
+
+  <section class="features">
+    <div class="feature">
+      <span class="emoji">📍</span>
+      <h3>One pill. Zero excuses.</h3>
+      <p>It fills up while you're in a meeting and counts down your freedom before the next one. You will always know exactly how doomed you are.</p>
+    </div>
+    <div class="feature">
+      <span class="emoji">🖱️</span>
+      <h3>Rest your mouse, not your schedule</h3>
+      <p>Park the pointer in the corner and your whole day springs open — yesterday, today, tomorrow, sliding out like it's showing off. Because it is.</p>
+    </div>
+    <div class="feature">
+      <span class="emoji">🔔</span>
+      <h3>Nags with better manners than you</h3>
+      <p>The pill grows and chimes when something starts, and again 5 minutes before it ends, and keeps doing it until you actually look. It's relentless. That's the point.</p>
+    </div>
+    <div class="feature">
+      <span class="emoji">📅</span>
+      <h3>Reads calendars you already have</h3>
+      <p>Google, iCloud, school accounts — anything already sitting in the macOS Calendar app works instantly. Pick which ones show. No new ecosystem to sign up for.</p>
+    </div>
+    <div class="feature">
+      <span class="emoji">🔒</span>
+      <h3>Doesn't rat you out</h3>
+      <p>No account, no server, no analytics dashboard somewhere logging how many meetings you've missed. Your calendar chaos stays exactly where it belongs: your Mac.</p>
+    </div>
+  </section>
+
+  <section class="block">
+    <h2>Installing (a whole five steps, buckle up)</h2>
+    <div class="steps">
+      <ol>
+        <li>Open the downloaded <code>.dmg</code> and drag <strong>CornerCal</strong> into <strong>Applications</strong>.
+          <span class="sub">There's a shortcut to the Applications folder right there. We even did the hard part for you.</span>
+        </li>
+        <li>Open CornerCal once. macOS will slam the door in its face and claim it "can't verify the developer."
+          <span class="sub">Correct, and expected — see below for who to blame.</span>
+        </li>
+        <li>Go to <strong>System Settings &rarr; Privacy &amp; Security</strong>, scroll down, and click <strong>Open Anyway</strong> next to CornerCal.
+          <span class="sub">This button has main character energy for about an hour after step 2, then it vanishes. Don't dawdle.</span>
+        </li>
+        <li>Enter your password and click <strong>Open</strong> in the confirmation dialog.</li>
+        <li>Allow Calendar access when CornerCal asks. This is the entire reason it exists — refusing here is like buying a car and declining the wheels.</li>
+      </ol>
+    </div>
+    <p class="honesty">
+      Here's the honest version: CornerCal isn't notarized, because notarizing costs $99 a
+      year for an Apple Developer account, and this is a free app made by a 14-year-old,
+      not a subsidiary of Apple. So macOS treats it like a stranger. The steps above are
+      the official, Apple-sanctioned way to tell your own Mac "I know this app, let it in" —
+      not a hack, not a workaround, just the price of not paying the toll. Prefer Terminal?
+      Skip the clicking entirely: <code>xattr -dr com.apple.quarantine /Applications/CornerCal.app</code>
+    </p>
+  </section>
+
+  <section class="block">
+    <h2>FAQ</h2>
+    <div class="steps">
+      <ol>
+        <li>Is this safe? macOS just yelled at me.
+          <span class="sub">Yes. The yelling is Apple's Developer Program fee, not a virus scan. CornerCal is one Swift app talking to one system calendar — there's nowhere for anything shady to hide.</span>
+        </li>
+        <li>Why isn't it on the App Store?
+          <span class="sub">Also gated behind $99/year, plus a review process built for companies, not students with a laptop. This site is the whole distribution strategy.</span>
+        </li>
+        <li>Will it email me, track me, or sell my calendar to advertisers?
+          <span class="sub">It would need the internet for any of that. It doesn't use the internet. It doesn't even know the internet exists.</span>
+        </li>
+        <li>Does it work with Google Calendar / iCloud / my school's Exchange account?
+          <span class="sub">If you've already added it in the macOS Calendar app, yes. CornerCal just reads what's already there and lets you pick which calendars show.</span>
+        </li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="block">
+    <h2>Privacy</h2>
+    <div class="privacy">
+      CornerCal reads events from the macOS <strong>Calendar</strong> app on your own Mac —
+      whatever accounts you've already connected in System Settings. No account of its own,
+      no server, no analytics, no "anonymous usage data." Everything it shows is computed
+      locally, on your machine, purely so you can stop lying to yourself about being on top
+      of your schedule.
+    </div>
+  </section>
+
+  <footer>
+    Made by a 14-year-old who was tired of missing meetings, not a corporation.
+    Sounds: <a href="https://kenney.nl" target="_blank" rel="noopener">Kenney.nl</a> (CC0).
+    <br>
+    Disclaimer: CornerCal cannot make you attend the meeting. It can only make it
+    emotionally impossible to claim you didn't know about it.
+  </footer>
+
+</div>
