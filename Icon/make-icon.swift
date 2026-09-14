@@ -46,10 +46,13 @@ func render(_ px: Int) -> NSBitmapImageRep {
   ctx.setLineWidth(w); ctx.setLineCap(.round); ctx.setLineJoin(.round)
   ctx.replacePathWithStrokedPath()
   ctx.clip()
-  let ink = CGGradient(colorsSpace: space, colors: [NSColor(srgbRed: 0.47, green: 0.87, blue: 0.64, alpha: 1).cgColor,
-                                                    NSColor(srgbRed: 0.20, green: 0.71, blue: 0.47, alpha: 1).cgColor] as CFArray,
-                       locations: [0, 1])!
-  ctx.drawLinearGradient(ink, start: CGPoint(x: 0, y: bottom + len + w), end: CGPoint(x: 0, y: bottom - w), options: [])
+  // Blue into violet along the stroke, top of the vertical arm to the end of the horizontal one.
+  let ink = CGGradient(colorsSpace: space, colors: [NSColor(srgbRed: 0.36, green: 0.66, blue: 1.00, alpha: 1).cgColor,
+                                                    NSColor(srgbRed: 0.50, green: 0.47, blue: 1.00, alpha: 1).cgColor,
+                                                    NSColor(srgbRed: 0.78, green: 0.38, blue: 0.96, alpha: 1).cgColor] as CFArray,
+                       locations: [0, 0.5, 1])!
+  ctx.drawLinearGradient(ink, start: CGPoint(x: right + w, y: bottom + len + w), end: CGPoint(x: right - len - w, y: bottom - w),
+                         options: [.drawsBeforeStartLocation, .drawsAfterEndLocation])
   ctx.restoreGState()
 
   // Hairline rim so the tile keeps its edge on dark backgrounds.
